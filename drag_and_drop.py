@@ -6,7 +6,6 @@ Created on Fri Jun 26 16:50:11 2020
 """
 
 from openpyxl_writing import write_sheet
-#import tkfilebrowser
 from read_pdf import extract_text,read_company_id_and_name
 from tkinter import filedialog
 import tkinter as tk
@@ -15,35 +14,7 @@ import traceback
 #import pkg_resources.py2_warn # I needed this import to get pyinstaller exe to run
 import threading
 import re
-# =============================================================================
-# class DragDropListbox(tk.Listbox):
-#     """ A Tkinter listbox with drag'n'drop reordering of entries. """
-#     def __init__(self, master, **kw):
-#         kw['selectmode'] = tk.SINGLE
-#         tk.Listbox.__init__(self, master, kw)
-#         self.bind('<Button-1>', self.setCurrent)
-#         self.bind('<B1-Motion>', self.shiftSelection)
-#         self.curIndex = None
-# 
-#     def setCurrent(self, event):
-#         self.curIndex = self.nearest(event.y)
-# 
-#     def shiftSelection(self, event):
-#         i = self.nearest(event.y)
-#         if i < self.curIndex:
-#             x = self.get(i)
-#             self.delete(i)
-#             self.insert(i+1, x)
-#             self.curIndex = i
-#         elif i > self.curIndex:
-#             x = self.get(i)
-#             self.delete(i)
-#             self.insert(i-1, x)
-#             self.curIndex = i
-# =============================================================================
-            
-## may have to choose between drag and drop vs multiple/extended selection
-## for the output folders listbox
+      
 
 # pulled from stack overflow
 class Drag_and_Drop_Listbox(tk.Listbox):
