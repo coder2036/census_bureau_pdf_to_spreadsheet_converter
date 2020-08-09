@@ -12,11 +12,7 @@ from openpyxl.styles.borders import Border,Side
 from openpyxl.styles.colors import Color
 from openpyxl.styles.fills import PatternFill
 
-def write_sheet(df,output_file_path,company_name):
-
-    
-    # fix the position of the confidentiality thing
-    
+def write_sheet(df,output_file_path,company_name):    
     wb = Workbook()
     ws = wb['Sheet']
     ws.title = '2020 Reporting Calendar'
@@ -65,7 +61,7 @@ def write_sheet(df,output_file_path,company_name):
     warning_col_end = 'J'
     warning_loc_begin = warning_col_begin + str(warning_row)
     warning_loc_end = warning_col_end + str(warning_row)
-    ws[warning_loc_begin] = 'Disclosure Prohibited Title 13/26 U.S.C. – Census Confidential'
+    ws[warning_loc_begin] = 'Disclosure Prohibited Title 13/26 U.S.C. â€“ Census Confidential'
     ws.merge_cells(warning_loc_begin + ':' + warning_loc_end)
     ws[warning_loc_begin].fill = PatternFill(patternType='solid',fgColor=Color('BF8F00'))
     ws[warning_loc_begin].font = Font(bold=True)
