@@ -34,8 +34,7 @@ def extract_text(calendar_path,survey_info):
     for page_num in range(num_pages):
         # these page numbers are zero indexed !!!
         page_text = reader.getPage(page_num).extractText()
-        ### NEED TO HANDLE CASES WHERE WE FIND THIS ON THE 
-        ### FIRST PAGE OR LAST PAGE
+
         if 'Company Reporting Calendar Reporting Unit' in page_text:
             # read all pages before this page as survey
             # read all pages after this page as reporting units
@@ -68,8 +67,6 @@ def extract_text(calendar_path,survey_info):
             print(survey_df.shape) # check number of rows and compare to number of surveys
             print(reporting_units_df.shape) # check number of rows and compare to number of reporting units
             final_df = create_final_df_test(survey_df,reporting_units_df,survey_info)
-            #test(final_df)
-            print(final_df.shape)
             return final_df
             break
 
@@ -105,19 +102,6 @@ def create_final_df_test(survey_df,reporting_units_df,survey_info):
     survey_info_df = get_survey_info_df(survey_info) # survey info spreadsheet
     
     for survey_id in survey_ids:
-        # =============================================================================
-#         mail_date = first.iloc[8]
-#         due_date = first.iloc[9]
-#         try:
-#             (x,y) = get_mail_and_due_dates(survey_id)
-#             if x:
-#                 mail_date = x
-#             if y:
-#                 due_date = y
-#         except:
-#             print(survey_id)
-#             pass
-# =============================================================================
         forms = survey_df[survey_df[2] == survey_id]
         first = forms.iloc[0] # still need to go thru rest 
         entry = {}
@@ -145,14 +129,6 @@ def create_final_df_test(survey_df,reporting_units_df,survey_info):
             info_page = survey_info_df.iloc[survey_info_df.index.get_loc(id_for_survey_info),20]
         except KeyError:
             pass
-        
-        # TODO: check that reporting units are calculated correctly
-        #num_units = 0
-# =============================================================================
-#         addresses = ''
-#         company_contacts = ''
-#         response_dates = ''
-# =============================================================================
         this_survey_df = pd.DataFrame(columns=columns)
         num_units = 0
         for index,form in forms.iterrows():
@@ -169,18 +145,6 @@ def create_final_df_test(survey_df,reporting_units_df,survey_info):
                 entry['Mailing Address'] = 'Form: ' + form_name + '\n' + 'ID' + ' ' + unit[0] + '\n' + create_address(unit)
                 entry['Company Contact'] = unit[16]
                 this_survey_df = this_survey_df.append(entry,ignore_index=True)
-                #response_dates += unit[14] + '\n' + dashes + '\n'
-                #company_contacts += unit[16] + '\n' + dashes + '\n'
-                #addresses += 'Form: ' + form_name + '\n' + 'ID' + ' ' + unit[0] + create_address(unit) + '\n' + dashes + '\n'
-# =============================================================================
-#         response_dates = response_dates.strip().rstrip(dashes).rstrip()
-#         entry['Response Date'] = response_dates
-#         addresses = addresses.strip().rstrip(dashes).rstrip() # remove dashes and new lines at end
-#         entry['Mailing Address'] = addresses
-#         company_contacts = company_contacts.strip().rstrip(dashes).rstrip()
-#         entry['Company Contact'] = company_contacts
-#         entry['Number of Reporting Units'] = num_units 
-# =============================================================================
         this_survey_df['Survey Description'] = survey_description
         this_survey_df['Survey Name'] = survey_name
         this_survey_df['Frequency'] = frequency  
@@ -199,11 +163,6 @@ def create_final_df_test(survey_df,reporting_units_df,survey_info):
 def create_address(unit):
     return unit[5] + '\n' + unit[6] + '\n' + unit[7] + ', ' + unit[8] + ' ' + unit[9]
 
-
-## each survey page holds up to nine entries 
-## each reporting units page holds up to eight entries
-## may be able to use this to check that table extraction was correct
-
 height = 576 # height is usually this but may be modified in read_company_id_and_name
 
 def read_company_id_and_name(calendar_path):  
@@ -214,10 +173,6 @@ def read_company_id_and_name(calendar_path):
     print(utils.get_page_layout(calendar_path))
     area_1 = '2,' + str(height - 36) + ',121,' + str(height-49)
     area_2 = '635,' + str(height - 33) + ',800,' + str(height-51)
-# =============================================================================
-#     tables = camelot.read_pdf(calendar_path,pages='1',flavor='stream',
-#                               table_areas=['2,540,121,527','635,543,800,525'])
-# =============================================================================
     tables = camelot.read_pdf(calendar_path,pages='1',flavor='stream',table_areas=[area_1,area_2])
     df = tables[0].df
     
@@ -227,77 +182,23 @@ def read_company_id_and_name(calendar_path):
     
     return (company_id,company_name)
 
-"""
-1. Extract company name from first page header (done)
-    run camelot with survey columns on all the pages
-2. Get all the survey data, skipping the header on each page
-3. Continue until you reach the Reporting Units title
-4. Re-run camelot with new column splits from that page onwards
-5. Skip thru all the content on that
-   page until reaching reporting units. can use skip header.
-   (look for a number in left hand column)
-6. Continue through rest of reporting units
-7. Match up addresses and stuff
-"""
-#if you find two tables in the page that contains that phrase then grab:
-    
-#specify columns later on. first pass without columns
-#enumerate
-"""
-1. read thru all the pages with standard settings until you come across page with the second header
-2. Check if that page contains both headers. 
-3. If not, then read all the previous pages using the survey columns and that page and all 
-of the following apges iwth the reporting units columns
-4. If so, then read all the previous pages using the survey columns and all the following 
-pages with the reporting units columns.
-5. For that particular page, read it with the survey columns and take the first table. Then 
-Read it with the reporting units columns and take the first table if their is only one table and 
-teh second table if there are two tables. 
-6. Use your data
-"""
-    
-
 
 def get_survey_data(calendar_path,start_page,end_page):
     columns= ["""50,99,145,235,467,553,618.4,673.7,734.8,776"""]
     area = '-1,' + str(height - 96) + ',954,' + str(height - 463)
-    
-# =============================================================================
-#     tables = camelot.read_pdf(calendar_path,pages=str(start_page) + '-' + str(end_page),
-#                                    flavor='stream',table_areas=['-1,480,954,113'],columns=columns)
-# =============================================================================
     tables = camelot.read_pdf(calendar_path,pages=str(start_page) + '-' + str(end_page),
                                    flavor='stream',table_areas=[area],columns=columns)
     dfs = []
     for table in tables:
         df = clean_survey_data(table.df)
-        #print(df.shape)
-        #print('^^ dimensions of survey page ^^')
-        #print(df)
-        #print('area')
-        #print(area)
-        #camelot.plot(table,kind='text')
-        #plt.show()
-        #break
         dfs.append(df)
     df = pd.concat(dfs)
     return df
-        
-   # df1 = parse_survey_data(tables[0].df)
-   # #df2 = parse_survey_data(tables[1].df)
-   # dfs = [df1,df2]
-    
-    #with pd.ExcelWriter(wb_path,engine='openpyxl',mode='a') as writer:
-    #    df1.to_excel(writer,sheet_name='2020 Reporting Calendar',index=False,startrow=20)
-    #    df2.to_excel(writer,sheet_name='2020 Reporting Calendar',index=False,startrow=20+2+len(df1))
-    #writer.save()
-
 
 def clean_survey_data(df):
     #df = df.iloc[8:] # dropping header
     df = merge_rows(df,[10])
-    return df
-        
+    return df   
 
 def merge_rows(df,to_add_new_line):
     new_df = pd.DataFrame(columns=df.columns)
@@ -333,12 +234,6 @@ def remove_junk_from_beginning(df):
 
 def get_reporting_units(calendar_path,start_page):
     area = '-1,' + str(height - 96) + ',954,' + str(height - 463)
-# =============================================================================
-#     tables = camelot.read_pdf(calendar_path,pages=str(start_page) + '-end',flavor='stream',
-#                               columns=["""50,93,140,211,252,301,
-#                                                   353,399,425,458,507,542,590,
-#                                                   642,684,724,846"""],table_areas=['-1,480,954,113'])
-# =============================================================================
     tables = camelot.read_pdf(calendar_path,pages=str(start_page) + '-end',flavor='stream',
                               columns=["""50,93,140,211,252,301,
                                                   353,399,425,458,507,542,590,
@@ -350,29 +245,17 @@ def get_reporting_units(calendar_path,start_page):
         print(df.shape)
         print('^^ dimensions of reporting units page ^^')
         dfs.append(df)
-    #write_surveys(wb_path,dfs)
     df = pd.concat(dfs)
     return df
         
     
 def clean_reporting_units_data(df):
-    #df = remove_junk_from_beginning(df)
     df = merge_rows(df,[16,17])
-    return df
-   
-    #writer = pd.ExcelWriter(workbook_path,engine='xlsxwriter')
-    # Modify this so the user can change the year
-    #df.to_excel(writer,startrow=1,sheet_name=worksheet_name,index=False)
-   # writer.save()
-    
+    return df    
 
 def extract_middle_page_survey(calendar_path,page_num):
     columns= ["""50,99,145,235,467,553,618.4,673.7,734.8,776"""]
     area = '-1,' + str(height - 96) + ',954,' + str(height - 463)
-# =============================================================================
-#     tables = camelot.read_pdf(calendar_path,pages=str(page_num),
-#                                    flavor='stream',table_areas=['-1,480,954,113'],columns=columns)
-# =============================================================================
     tables = camelot.read_pdf(calendar_path,pages=str(page_num),
                                    flavor='stream',table_areas=[area],columns=columns)
     
@@ -390,16 +273,9 @@ def extract_middle_page_survey(calendar_path,page_num):
     df = clean_survey_data(df)
     return df
     
-            
-
-
 def extract_middle_page_units(calendar_path,page_num):
     columns=["""50,93,140,211,252,301,353,399,425,458,507,542,590,642,684,724,846"""]
     area = '-1,' + str(height - 96) + ',954,' + str(height - 463)
-# =============================================================================
-#     tables = camelot.read_pdf(calendar_path,pages=str(page_num),
-#                                    flavor='stream',table_areas=['-1,480,954,113'],columns=columns)
-# =============================================================================
     tables = camelot.read_pdf(calendar_path,pages=str(page_num),
                                     flavor='stream',table_areas=[area],columns=columns)
 
@@ -445,20 +321,6 @@ def create_final_df(survey_df,reporting_units_df,survey_info):
         entry['Survey Name'] = first.iloc[3] + '\n' + '(' + survey_id + ')'
         entry['Frequency'] = first.iloc[7]
         
-# =============================================================================
-#         mail_date = first.iloc[8]
-#         due_date = first.iloc[9]
-#         try:
-#             (x,y) = get_mail_and_due_dates(survey_id)
-#             if x:
-#                 mail_date = x
-#             if y:
-#                 due_date = y
-#         except:
-#             print(survey_id)
-#             pass
-# =============================================================================
-        
         id_for_survey_info = survey_id
         if (id_for_survey_info != 'M3'):
             id_for_survey_info = id_for_survey_info.rstrip('0123456789')
@@ -478,7 +340,6 @@ def create_final_df(survey_df,reporting_units_df,survey_info):
             pass
         
         entry['Survey Description'] = first.iloc[4]
-        # TODO: check that reporting units are calculated correctly
         num_units = 0
         addresses = ''
         company_contacts = ''
@@ -492,7 +353,6 @@ def create_final_df(survey_df,reporting_units_df,survey_info):
                 response_dates += unit[14] + '\n' + dashes + '\n'
                 company_contacts += unit[16] + '\n' + dashes + '\n'
                 addresses += 'Form: ' + form_name + '\n' + 'ID' + ' ' + unit[0] + '\n' + create_address(unit) + '\n' + dashes + '\n'
-                #addresses += 'Form:' + form_name +'\n' + 'ID' + ' ' + unit[0] + '\n' + reporting_units_df['Address'] + '\n'
         response_dates = response_dates.strip().rstrip(dashes).rstrip()
         entry['Response Date'] = response_dates
         addresses = addresses.strip().rstrip(dashes).rstrip() # remove dashes and new lines at end
@@ -504,39 +364,3 @@ def create_final_df(survey_df,reporting_units_df,survey_info):
         final_df = final_df.append(entry,ignore_index=True)
     final_df = final_df.fillna('')    
     return final_df
-
-
-
-# =============================================================================
-# import time
-# import multiprocessing
-# # =============================================================================
-# # 
-# # def prod(x,y):
-# #     return x  * y 
-# # =============================================================================
-# 
-# if __name__ == '__main__':
-#     nums = []
-#     companies = [a,b,c,d,e]
-#     inputs = []
-#     for company in companies:
-#         inputs.append((company,r'N:\CROSSCEN\Account Manager Expansion\2018 FSAM\SurveyInformation_SY2019.xlsx'))
-#     for i in range(999):
-#         for j in range(999):
-#             nums.append((i,j))
-#     print('Multiprocessing...')
-#     start_mp = time.time()
-#     with multiprocessing.Pool(processes=2) as pool:
-# #        results = pool.starmap(merge_names, names)
-#         results = pool.starmap(extract_text,inputs)
-#     
-#     print(time.time() - start_mp)
-#     print('Serial...')
-#     start_serial = time.time()
-#     for input in inputs:
-#         extract_text(input[0],input[1])
-#     print(time.time() - start_serial)
-# 
-# =============================================================================
-
